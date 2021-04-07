@@ -1,5 +1,6 @@
 package main;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.rmi.RemoteException;
 
@@ -11,6 +12,12 @@ import javax.xml.rpc.ServiceException;
 
 import customPojo.ResultSpedID;
 import customPojo.Spedid_idCollo;
+import customPojo.shipmentPojo.chiamate.ConfirmRequest;
+import customPojo.shipmentPojo.chiamate.CreateRequest;
+import customPojo.shipmentPojo.chiamate.DeleteRequest;
+import customPojo.shipmentPojo.risposte.ConfirmResult;
+import customPojo.shipmentPojo.risposte.CreateResult;
+import customPojo.shipmentPojo.risposte.DeleteResult;
 import customPojo.trackingPojo.Tracking_SpedID;
 import remoteRequest.BrtRequestRemote;
 
@@ -49,6 +56,21 @@ public class BrtRequest implements BrtRequestRemote{
 	public ResultSpedID GetSpedIDbyRMA(BigDecimal CLIENTE_ID, String RIFERIMENTO_MITTENTE_ALFABETICO) throws ServiceException, RemoteException {
 		return SimpleMethod.GetSpedIDbyRMA(CLIENTE_ID, RIFERIMENTO_MITTENTE_ALFABETICO);
 		
+	}
+
+	@Override
+	public DeleteResult CancellaSpedizione(DeleteRequest deleteRequest) throws IOException {
+		return SimpleMethod.CancellaSpedizione(deleteRequest);
+	}
+
+	@Override
+	public ConfirmResult ConfermaSpedizione(ConfirmRequest confirmRequest) throws IOException {
+		return SimpleMethod.ConfermaSpedizione(confirmRequest);
+	}
+
+	@Override
+	public CreateResult CreaSpedizione(CreateRequest createRequest) throws IOException {
+		return SimpleMethod.CreaSpedizione(createRequest);
 	}
 
 }

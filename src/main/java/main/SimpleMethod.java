@@ -1,22 +1,31 @@
 package main;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.persistence.Temporal;
 import javax.xml.rpc.ServiceException;
 
-import org.datacontract.schemas._2004._07.Bartolini_EasySped_DAL.DestinationAddress;
-import org.datacontract.schemas._2004._07.Bartolini_EasySped_DAL.DestinationAddressOut;
-import org.datacontract.schemas._2004._07.Bartolini_EasySped_Printlabel.LabelToPrint;
-import org.datacontract.schemas._2004._07.Bartolini_EasySped_ws.EasySpedFault;
-import org.junit.jupiter.api.Test;
-import org.tempuri.EasySpedWSServiceImplLocator;
+import org.apache.commons.io.IOUtils;
+import com.google.gson.Gson;
 
 import customPojo.ResultSpedID;
 import customPojo.Spedid_idCollo;
+import customPojo.shipmentPojo.chiamate.ConfirmRequest;
+import customPojo.shipmentPojo.chiamate.CreateRequest;
+import customPojo.shipmentPojo.chiamate.DeleteRequest;
+import customPojo.shipmentPojo.risposte.ConfirmResult;
+import customPojo.shipmentPojo.risposte.CreateResult;
+import customPojo.shipmentPojo.risposte.DeleteResult;
 import customPojo.trackingPojo.Tracking_Event;
 import customPojo.trackingPojo.Tracking_SpedID;
 import customPojo.trackingPojo.bolla.Assic;
@@ -34,15 +43,6 @@ import iseries.wsbeans.brt_trackingbybrtshipmentid.BrtTRACKINGBYBRTSHIPMENTIDInp
 import iseries.wsbeans.brt_trackingbybrtshipmentid.BrtTRACKINGBYBRTSHIPMENTIDResult;
 import iseries.wsbeans.brt_trackingbybrtshipmentid.Eventi;
 import iseries.wsbeans.brt_trackingbybrtshipmentid.Note;
-import iseries.wsbeans.brt_vas_routingandlabel.BRT_VAS_RoutingAndLabelLocator;
-import iseries.wsbeans.brt_vas_routingandlabel.BRT_VAS_RoutingAndLabelServices;
-import iseries.wsbeans.brt_vas_routingandlabel.BrtVASRoutingAndLabelInput;
-import iseries.wsbeans.brt_vas_routingandlabel.BrtVASRoutingAndLabelResult;
-import iseries.wsbeans.brt_vas_routingandlabel.HeaderVAB;
-import iseries.wsbeans.brt_vas_routingandlabel.InKeyValue;
-import iseries.wsbeans.brt_vas_routingandlabel.RoutingAndLabelRequest;
-import iseries.wsbeans.brt_vas_routingandlabel.RoutingAndLabelResponse;
-import iseries.wsbeans.brt_vas_routingandlabel.Validation;
 import iseries.wsbeans.getidspedizionebyidcollo.GetIdSpedizioneByIdColloLocator;
 import iseries.wsbeans.getidspedizionebyidcollo.GetIdSpedizioneByIdColloServices;
 import iseries.wsbeans.getidspedizionebyidcollo.GetidspedizionebyidcolloInput;
@@ -60,71 +60,118 @@ import iseries.wsbeans.getlegendaesiti.GetLegendaEsitiServices;
 import iseries.wsbeans.getlegendaesiti.GetlegendaesitiInput;
 import iseries.wsbeans.getlegendaesiti.GetlegendaesitiResult;
 import iseries.wsbeans.getlegendaesiti.LegendaESITO;
-import iseries.wsbeans.getlegendaeventi.GetLegendaEventi;
 import iseries.wsbeans.getlegendaeventi.GetLegendaEventiLocator;
 import iseries.wsbeans.getlegendaeventi.GetLegendaEventiServices;
 import iseries.wsbeans.getlegendaeventi.GetlegendaeventiInput;
 import iseries.wsbeans.getlegendaeventi.GetlegendaeventiResult;
 import iseries.wsbeans.getlegendaeventi.LegendaEVENTO;
-import it.bartolini.easysped.ws.EasySpedDEWS;
-import it.bartolini.easysped.ws.EasySpedDEWSProxy;
 
 public class SimpleMethod {
 	
-/*
 	
-	public void GetRoutingAndLabel () throws ServiceException, RemoteException {
+	 public static DeleteResult CancellaSpedizione (DeleteRequest deleteRequest) throws IOException {
+		 	Gson gsonParse = new Gson();
+			URL url = new URL ("https://api.brt.it/rest/v1/shipments/delete");
+						
+			
+		
+		        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		        connection.setRequestMethod("PUT");
+		        connection.setDoOutput(true);
+		        connection.setRequestProperty("Content-Type", "application/json");
+		        connection.setRequestProperty("Accept", "application/json");
+		        
+		        
+		        OutputStreamWriter osw = new OutputStreamWriter(connection.getOutputStream());
+		        osw.write(gsonParse.toJson(deleteRequest));
+		        osw.flush();
+		        osw.close();
+			
+		        connection.getResponseCode();
+		        
+		        StringWriter writer = new StringWriter();
+		        IOUtils.copy(connection.getInputStream(), writer,"utf-8");
+			
+		        return gsonParse.fromJson(writer.toString(), DeleteResult.class);
+			
+			
+		 
+	 }
+	 
+	 
 	
-		EasySpedDEWS client = new EasySpedDEWSProxy();
-		
-		DestinationAddress indirizzo = new DestinationAddress();
-		
-
-
-		
-		EasySpedWSServiceImplLocator t = new EasySpedWSServiceImplLocator();
-		t.createCall();
-		
-		DestinationAddress address = new DestinationAddress();
-		address.setTipoLancio("");
-		address.setRicercaPOArrivo("S");
-		address.setAnnoSpedizione((short)2020);
-		address.setCodiceProdotto("Codice Prodotto");
-		address.setDestinatarioCap("80026");
-		address.setDestinatarioIndirizzo("via fasulla");
-		address.setDestinatarioLocalita("Roma");
-		address.setDestinatarioNazione(" ");
-		address.setDestinatarioProvincia("RM");
-		address.setDestinatarioRagioneSociale("Ironblaster");
-		address.setFilialeSegnaCollo((short)1);
-		address.setMeseGiornoSpedizione((short)1119);
-		address.setMittenteNazione(" ");
-		address.setMittenteProvincia("RM");
-		address.setMittenteRagioneSociale("Azienda");
-		address.setNetwork(" ");
-		address.setNumeroSegnaCollo(1);
-		address.setNumeroSerie((short)20);
-		address.setNumSegnaColloDi(1);
-		address.setPeso(new BigDecimal(1));
-		address.setPOPartenza((short)1);
-		address.setVolume(new BigDecimal(0));
-		address.setRistampa("");
-		address.setPrimaConsegnaParticolare("");
-		address.setSecondaConsegnaParticolare("");
-		address.setTipoPorto("F");
-		address.setTipoServizioBolle("C");
-		address.setTipoStampante("1");
-		
-		DestinationAddressOut out = client.calculateBRTSort(address);
+	public static ConfirmResult ConfermaSpedizione(ConfirmRequest confirmRequest) throws IOException {
+		Gson gsonParse = new Gson();
+		URL url = new URL ("https://api.brt.it/rest/v1/shipments/shipment");
 		
 		
-		int i = 0;
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Accept", "application/json");
+        
+        
+        OutputStreamWriter osw = new OutputStreamWriter(connection.getOutputStream());
+        osw.write(gsonParse.toJson(confirmRequest));
+        osw.flush();
+        osw.close();
+        connection.getResponseCode();
+        
+   
+        StringWriter writer = new StringWriter();
+        IOUtils.copy(connection.getInputStream(), writer,"utf-8");
 	
+        return gsonParse.fromJson(writer.toString(), ConfirmResult.class);
+		
+		
+		
+	}
+	 
+	 
+	 
+	
+	public static CreateResult CreaSpedizione(CreateRequest createRequest) throws IOException {
+		
+		URL url = new URL ("https://api.brt.it/rest/v1/shipments/shipment");
+		
+		HttpURLConnection con = (HttpURLConnection)url.openConnection();
+		
+		
+		con.setRequestMethod("POST");
+		
+		con.setRequestProperty("Content-Type", "application/json");
+		
+		con.setRequestProperty("Accept", "application/json");
 
+		con.setDoOutput(true);
+		
+		Gson gsonParse = new Gson();
+		
+		
+		try(OutputStream os = con.getOutputStream()) {
+		    byte[] input = gsonParse.toJson(createRequest).getBytes("utf-8");
+		    os.write(input, 0, input.length);			
+		}
+		
+		try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"))) {
+				    StringBuilder response = new StringBuilder();
+				    String responseLine = null;
+				    while ((responseLine = br.readLine()) != null) {
+				        response.append(responseLine.trim());
+				    }
+				    
+				    
+				  return  gsonParse.fromJson(response.toString(),CreateResult.class);
+				}
+		
+		
+		
 	}
 	
 	
-	*/
+	
+	
 	
 	
 	
